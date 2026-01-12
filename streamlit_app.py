@@ -61,8 +61,6 @@ if ingredients_list:
 # -------------------------------
 # Nutrition information
 # -------------------------------
-st.subheader("Nutrition Information")
-
 smoothiefruit_response = requests.get(
     "https://my.smoothiefruit.com/api/fruit/watermelon"
 )
