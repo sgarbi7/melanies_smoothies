@@ -26,22 +26,29 @@ cnx = st.connection("snowflake")
 session = cnx.session()
 
 # -------------------------------
-# Load fruit options
+# Load fruit options (FRUIT_NAME + SEARCH_ON)
 # -------------------------------
 fruit_df = (
     session
     .table("smoothies.public.fruit_options")
-    .select(col("FRUIT_NAME"))
+    .select(col("FRUIT_NAME"), col("SEARCH_ON"))
 )
 
-fruit_list = [row["FRUIT_NAME"] for row in fruit_df.collect()]
+fruit_rows = fruit_df.collect()
+
+# Map display name -> search value
+fruit_display_list = [row["FRUIT_NAME"] for row in fruit_rows]
+fruit_search_map = {
+    row["FRUIT_NAME"]: row["SEARCH_ON"]
+    for row in fruit_rows
+}
 
 # -------------------------------
-# Multiselect ingredients
+# Multiselect ingredients (UI uses FRUIT_NAME)
 # -------------------------------
 ingredients_list = st.multiselect(
     "Choose up to 5 ingredients:",
-    fruit_list,
+    fruit_display_list,
     max_selections=5
 )
 
@@ -65,13 +72,13 @@ if ingredients_list:
         )
 
 # -------------------------------
-# Nutrition information (API per fruit)
+# Nutrition information (API uses SEARCH_ON)
 # -------------------------------
 if ingredients_list:
     st.subheader("Nutrition Information")
 
     for fruit_chosen in ingredients_list:
-        fruit_api_name = fruit_chosen.lower().replace(" ", "")
+        fruit_api_name = fruit_search_map.get(fruit_chosen)
 
         smoothiefroot_response = requests.get(
             f"https://www.smoothiefroot.com/api/fruit/{fruit_api_name}",
