@@ -1,7 +1,6 @@
 # Import python packages
 import streamlit as st
 import requests
-from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col
 
 # Write directly to the app
@@ -11,8 +10,9 @@ st.write("Choose the fruits you want in your custom Smoothie!")
 name_on_order = st.text_input("Name on Smoothie:")
 st.write("The name on your Smoothie will be:", name_on_order)
 
-# Snowflake session
-session = get_active_session()
+# Snowflake connection (Streamlit Cloud compatible)
+cnx = st.connection("snowflake")
+session = cnx.session()
 
 my_dataframe = (
     session
@@ -22,7 +22,7 @@ my_dataframe = (
 
 ingredients_list = st.multiselect(
     "Choose up to 5 ingredients:",
-    my_dataframe,
+    my_dataframe.collect(),  # <- IMPORTANTE
     max_selections=5
 )
 
@@ -37,9 +37,7 @@ if ingredients_list:
         "values ('" + ingredients_string + "', '" + name_on_order + "')"
     )
 
-    time_to_insert = st.button("Submit Order")
-
-    if time_to_insert:
+    if st.button("Submit Order"):
         session.sql(my_insert_stmt).collect()
         st.success(
             f"Your Smoothie is ordered, {name_on_order}!",
@@ -55,7 +53,7 @@ smoothiefruit_response = requests.get(
 
 if smoothiefruit_response.status_code == 200:
     st.dataframe(
-        data=smoothiefruit_response.json(),
+        smoothiefruit_response.json(),
         use_container_width=True
     )
 else:
