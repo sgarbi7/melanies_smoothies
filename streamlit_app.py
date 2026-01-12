@@ -1,7 +1,11 @@
 # Import python packages
 import streamlit as st
 import requests
+import urllib3
 from snowflake.snowpark.functions import col
+
+# Disable SSL warnings (API demo)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # -------------------------------
 # App Header
@@ -21,7 +25,9 @@ st.write("The name on your Smoothie will be:", name_on_order)
 cnx = st.connection("snowflake")
 session = cnx.session()
 
+# -------------------------------
 # Load fruit options
+# -------------------------------
 fruit_df = (
     session
     .table("smoothies.public.fruit_options")
@@ -59,10 +65,27 @@ if ingredients_list:
         )
 
 # -------------------------------
-# Nutrition information
+# Nutrition information (API per fruit)
 # -------------------------------
-# New section to display smoothiefroot nutrition information
-import requests
-smoothiefroot_response = requests.get("https://www.smoothiefroot.com/api/fruit/watermelon")
-# st.text(smoothiefroot_response.json())
-sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
+if ingredients_list:
+    st.subheader("Nutrition Information")
+
+    for fruit_chosen in ingredients_list:
+        fruit_api_name = fruit_chosen.lower().replace(" ", "")
+
+        smoothiefroot_response = requests.get(
+            f"https://www.smoothiefroot.com/api/fruit/{fruit_api_name}",
+            verify=False,
+            timeout=10
+        )
+
+        if smoothiefroot_response.status_code == 200:
+            st.write(f"**{fruit_chosen}**")
+            st.dataframe(
+                smoothiefroot_response.json(),
+                use_container_width=True
+            )
+        else:
+            st.warning(
+                f"Could not retrieve nutrition data for {fruit_chosen}"
+            )
