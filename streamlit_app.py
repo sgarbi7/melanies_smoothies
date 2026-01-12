@@ -61,15 +61,10 @@ if ingredients_list:
 # -------------------------------
 # Nutrition information
 # -------------------------------
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
 st.subheader("Nutrition Information")
 
 smoothiefruit_response = requests.get(
-    "https://my.smoothiefruit.com/api/fruit/watermelon",
-    verify=False,
-    timeout=10
+    "https://my.smoothiefruit.com/api/fruit/watermelon"
 )
 
 if smoothiefruit_response.status_code == 200:
@@ -79,4 +74,3 @@ if smoothiefruit_response.status_code == 200:
     )
 else:
     st.error("Could not retrieve nutrition data.")
-
