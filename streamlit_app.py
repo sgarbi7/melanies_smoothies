@@ -61,14 +61,8 @@ if ingredients_list:
 # -------------------------------
 # Nutrition information
 # -------------------------------
-smoothiefruit_response = requests.get(
-    "https://my.smoothiefruit.com/api/fruit/watermelon"
-)
-
-if smoothiefruit_response.status_code == 200:
-    st.dataframe(
-        smoothiefruit_response.json(),
-        use_container_width=True
-    )
-else:
-    st.error("Could not retrieve nutrition data.")
+# New section to display smoothiefroot nutrition information
+import requests
+smoothiefroot_response = requests.get("my.smoothiefroot.com")
+# st.text(smoothiefroot_response.json())
+sf_df = st.dataframe(data=smoothiefroot_response.json(), use_container_width=True)
